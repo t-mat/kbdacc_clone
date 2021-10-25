@@ -1,6 +1,6 @@
 # kbdacc_clone
 
-Clone of classic [Tetsuya Kamei](http://www.jsdlab.co.jp/~kamei/)'s `kbdacc`.
+Clone of classic [Tetsuya Kamei](http://www.jsdlab.co.jp/~kamei/)'s `kbdacc` which accelerates key repeat time.
 
 
 ## Building
@@ -13,10 +13,10 @@ Prerequisites
 
 ```
 cd /d "%USERPROFILE%\Documents"
-git https://github.com/t-mat/kbdacc_clone.git
+git clone https://github.com/t-mat/kbdacc_clone.git
 cd kbdacc_clone
 .\build.bat
-start "" ".\output\Release\kbdacc.exe"
+start "" ".\artifacts\Release\kbdacc.exe"
 ```
 
 
