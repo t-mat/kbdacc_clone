@@ -5,9 +5,16 @@ static const wchar_t syncMutexName[] = APPNAME_L L"__synchronize_mutex__";
 
 class DllLoader {
 public:
-    DllLoader(const wchar_t* filename) { load(filename); }
+    DllLoader(const wchar_t* filename) {
+        hInstance = LoadLibraryW(filename);
+    }
 
-    ~DllLoader() { unload(); }
+    ~DllLoader() {
+        if(good()) {
+            FreeLibrary(hInstance);
+            hInstance = nullptr;
+        }
+    }
 
     bool good() const { return nullptr != hInstance; }
 
@@ -19,43 +26,23 @@ public:
     }
 
 protected:
-    bool load(const wchar_t* filename) {
-        hInstance = LoadLibraryW(filename);
-        return good();
-    }
-
-    void unload() {
-        if(good()) {
-            FreeLibrary(hInstance);
-            hInstance = nullptr;
-        }
-    }
-
     HINSTANCE hInstance = nullptr;
 };
 
 
-inline std::unique_ptr<wchar_t, std::function<void(wchar_t*)>> makeErrorString(DWORD dwError) {
+void errorDialog(const wchar_t* title, DWORD err, UINT style = MB_OK | MB_ICONINFORMATION) {
     wchar_t* buf = nullptr;
     FormatMessageW(
           FORMAT_MESSAGE_ALLOCATE_BUFFER
         | FORMAT_MESSAGE_FROM_SYSTEM
         | FORMAT_MESSAGE_IGNORE_INSERTS
         , 0
-        , dwError
+        , err
         , MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT)
         , reinterpret_cast<LPWSTR>(&buf), 0, 0
     );
-    return { buf, [](auto* p) { LocalFree(p); } };
-}
-
-inline void errorDialog(const wchar_t* title, const wchar_t* text, UINT style = MB_OK | MB_ICONINFORMATION) {
-    MessageBoxW(nullptr, text, title, style);
-}
-
-inline void errorDialog(const wchar_t* title, DWORD err, UINT style = MB_OK | MB_ICONINFORMATION) {
-    auto e = makeErrorString(err);
-    errorDialog(title, e.get(), style);
+    MessageBoxW(nullptr, buf, title, style);
+    LocalFree(buf);
 }
 
 
@@ -63,11 +50,7 @@ inline void errorDialog(const wchar_t* title, DWORD err, UINT style = MB_OK | MB
 class Mutex {
 public:
     Mutex(const wchar_t* mutexName, BOOL fInitialOwner = FALSE) {
-    //  create(mutexName, fInitialOwner);
-//      if(!good()) {
-            handle = CreateMutexW(0, fInitialOwner, mutexName);
-//      }
-//      return ERROR_ALREADY_EXISTS != GetLastError();
+        handle = CreateMutexW(0, fInitialOwner, mutexName);
     }
 
     ~Mutex() {
@@ -76,13 +59,6 @@ public:
             handle = nullptr;
         }
     }
-
-//  bool create(const wchar_t* mutexName, BOOL fInitialOwner = FALSE) {
-//      if(!good()) {
-//          handle = CreateMutexW(0, fInitialOwner, mutexName);
-//      }
-//      return ERROR_ALREADY_EXISTS != GetLastError();
-//  }
 
     bool good() const {
         return nullptr != handle;
@@ -104,6 +80,7 @@ struct NotifyIcon {
         notifyIcon(hWnd, 0, 0, false, 0);
     }
 
+protected:
     static void
     notifyIcon(HWND hwnd, HICON icon, const wchar_t* tipText, bool add, UINT uCallbackMessage) {
         NOTIFYICONDATAW nid {
@@ -124,7 +101,6 @@ struct NotifyIcon {
         }
     }
 
-protected:
     HWND hWnd = nullptr;
 };
 
@@ -154,12 +130,12 @@ static LRESULT wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             SetFocus(hwnd);
             POINT p;
             GetCursorPos(&p);
+
             class PopupMenu {
             public:
                 PopupMenu() : hMenu(CreatePopupMenu()) {}
                 ~PopupMenu() { DestroyMenu(hMenu); }
                 operator HMENU() const { return hMenu; }
-
             protected:
                 HMENU hMenu = nullptr;
             };
@@ -173,9 +149,8 @@ static LRESULT wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 }
 
 
-int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
-    static const wchar_t mutexName[] = L"Global\\" APPNAME;
-    Mutex mutex(mutexName);
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
+    Mutex mutex(L"Global\\" APPNAME);
     if(! mutex.good()) { return 0; }
 
     const HWND hwnd = [&]() {
@@ -204,7 +179,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
     Mutex procMutex(syncMutexName);
     if(!procMutex.good()) { return 0; }
 
-    {
+    {   // Invoke 32-bit executable.
         wchar_t imageName[MAX_PATH] = { 0 };
         const DWORD nn = GetModuleFileNameW(nullptr, &imageName[0], static_cast<DWORD>(std::size(imageName)));
         wcscpy_s(&imageName[nn], std::size(imageName)-nn, L"32");       // L"kbdacc.exe32"
