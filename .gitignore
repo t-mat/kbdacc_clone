@@ -1,0 +1,11 @@
+.*/
+Win32/
+x64/
+
+*.vcxproj.filters
+*.vcxproj.user
+
+*.dll
+*.dll32
+*.exe
+*.exe32
