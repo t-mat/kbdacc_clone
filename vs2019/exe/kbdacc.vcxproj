@@ -101,7 +101,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
@@ -114,14 +114,16 @@
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "$(SolutionDir)..\..\artifacts\$(Configuration)\"
+      <Command>if not exist "$(SolutionDir)..\..\artifacts\$(Configuration)\" mkdir "$(SolutionDir)..\..\artifacts\$(Configuration)\"
+copy "$(TargetPath)" "$(SolutionDir)..\..\artifacts\$(Configuration)\"
+if not exist "$(SolutionDir)x64\$(Configuration)\" mkdir "$(SolutionDir)x64\$(Configuration)\"
 copy "$(TargetPath)" "$(SolutionDir)x64\$(Configuration)\"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
@@ -138,14 +140,16 @@ copy "$(TargetPath)" "$(SolutionDir)x64\$(Configuration)\"
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "$(SolutionDir)..\..\artifacts\$(Configuration)\"
+      <Command>if not exist "$(SolutionDir)..\..\artifacts\$(Configuration)\" mkdir "$(SolutionDir)..\..\artifacts\$(Configuration)\"
+copy "$(TargetPath)" "$(SolutionDir)..\..\artifacts\$(Configuration)\"
+if not exist "$(SolutionDir)x64\$(Configuration)\" mkdir "$(SolutionDir)x64\$(Configuration)\"
 copy "$(TargetPath)" "$(SolutionDir)x64\$(Configuration)\"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
@@ -158,13 +162,14 @@ copy "$(TargetPath)" "$(SolutionDir)x64\$(Configuration)\"
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "$(SolutionDir)..\..\artifacts\$(Configuration)\"
+      <Command>if not exist "$(SolutionDir)..\..\artifacts\$(Configuration)\" mkdir "$(SolutionDir)..\..\artifacts\$(Configuration)\"
+copy "$(TargetPath)" "$(SolutionDir)..\..\artifacts\$(Configuration)\"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
@@ -181,7 +186,8 @@ copy "$(TargetPath)" "$(SolutionDir)x64\$(Configuration)\"
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(TargetPath)" "$(SolutionDir)..\..\artifacts\$(Configuration)\"
+      <Command>if not exist "$(SolutionDir)..\..\artifacts\$(Configuration)\" mkdir "$(SolutionDir)..\..\artifacts\$(Configuration)\"
+copy "$(TargetPath)" "$(SolutionDir)..\..\artifacts\$(Configuration)\"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
