@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #define WIN32_LEAN_AND_MEAN
-#define _WIN32_WINNT 0x0A00	// Windows 10 ( https://docs.microsoft.com/en-us/windows/win32/winprog/using-the-windows-headers )
+#define _WIN32_WINNT 0x0A00 // Windows 10 ( https://docs.microsoft.com/en-us/windows/win32/winprog/using-the-windows-headers )
 #include <windows.h>
 #include <strsafe.h>
 #include <shellapi.h>
@@ -12,8 +12,7 @@
 #include <functional>
 #include <array>
 
-#define APPNAME    "kbdacc"
-#define APPNAME_L L"kbdacc"
+#define APPNAME "kbdacc"
 
 #if defined(_WIN64)
 #  if !defined(_DEBUG)
@@ -48,6 +47,5 @@ inline void outputDebugString(const char* fmt, ...) {
     va_end(args);
 }
 #else
-#define outputDebugString(...)
 #define outputDebugString(...)
 #endif

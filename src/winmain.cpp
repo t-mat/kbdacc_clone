@@ -1,6 +1,6 @@
 ﻿#include "kbdacc.h"
-static const wchar_t appName[] = APPNAME_L;
-static const wchar_t syncMutexName[] = APPNAME_L L"__synchronize_mutex__";
+static const wchar_t appName[] = L"" APPNAME;
+static const wchar_t syncMutexName[] = L"" APPNAME L"__synchronize_mutex__";
 
 
 class DllLoader {
@@ -16,13 +16,8 @@ public:
         }
     }
 
-    bool good() const { return nullptr != hInstance; }
-
-    void* getProcAddress(const char* procName) const {
-        if(!good()) {
-            return nullptr;
-        }
-        return GetProcAddress(hInstance, procName);
+    bool good() const {
+        return nullptr != hInstance;
     }
 
 protected:
@@ -30,17 +25,11 @@ protected:
 };
 
 
-void errorDialog(const wchar_t* title, DWORD err, UINT style = MB_OK | MB_ICONINFORMATION) {
+static void errorDialog(const wchar_t* title, DWORD err, UINT style = MB_OK | MB_ICONINFORMATION) {
     wchar_t* buf = nullptr;
-    FormatMessageW(
-          FORMAT_MESSAGE_ALLOCATE_BUFFER
-        | FORMAT_MESSAGE_FROM_SYSTEM
-        | FORMAT_MESSAGE_IGNORE_INSERTS
-        , 0
-        , err
-        , MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT)
-        , reinterpret_cast<LPWSTR>(&buf), 0, 0
-    );
+    const DWORD flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
+    const DWORD langId = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT);
+    FormatMessageW(flags, 0, err, langId, reinterpret_cast<LPWSTR>(&buf), 0, 0);
     MessageBoxW(nullptr, buf, title, style);
     LocalFree(buf);
 }
@@ -82,10 +71,10 @@ struct NotifyIcon {
 
 protected:
     static void
-    notifyIcon(HWND hwnd, HICON icon, const wchar_t* tipText, bool add, UINT uCallbackMessage) {
+    notifyIcon(HWND hWnd, HICON icon, const wchar_t* tipText, bool add, UINT uCallbackMessage) {
         NOTIFYICONDATAW nid {
             .cbSize             = sizeof(nid),
-            .hWnd               = hwnd,
+            .hWnd               = hWnd,
             .uID                = 1,
             .uFlags             = NIF_MESSAGE | NIF_ICON | NIF_TIP,
             .uCallbackMessage   = uCallbackMessage,
@@ -109,10 +98,10 @@ static constexpr UINT WM_MY_TASKTRAY    = WM_USER + 1;
 static constexpr UINT CM_MY_EXIT        = 1;
 
 
-static LRESULT wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+static LRESULT wndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch(uMsg) {
     default:
-        return DefWindowProc(hwnd, uMsg, wParam, lParam);
+        return DefWindowProc(hWnd, uMsg, wParam, lParam);
 
     case WM_DESTROY:
         PostQuitMessage(0);
@@ -126,8 +115,8 @@ static LRESULT wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
     case WM_MY_TASKTRAY:
         if(lParam == WM_LBUTTONUP || lParam == WM_RBUTTONUP) {
-            SetForegroundWindow(hwnd);
-            SetFocus(hwnd);
+            SetForegroundWindow(hWnd);
+            SetFocus(hWnd);
             POINT p;
             GetCursorPos(&p);
 
@@ -142,25 +131,29 @@ static LRESULT wndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
             PopupMenu menu;
             AppendMenu(menu, MF_STRING, CM_MY_EXIT, L"Quit");
-            return TrackPopupMenu(menu, TPM_RIGHTALIGN | TPM_BOTTOMALIGN, p.x, p.y, 0, hwnd, nullptr);
+            return TrackPopupMenu(menu, TPM_RIGHTALIGN | TPM_BOTTOMALIGN, p.x, p.y, 0, hWnd, nullptr);
         }
         return 0;
     }
 }
 
 
-int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
+int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
     Mutex mutex(L"Global\\" APPNAME);
-    if(! mutex.good()) { return 0; }
+    if(! mutex.good()) {
+        const DWORD lastError = GetLastError();
+        outputDebugString(L"Failed to create global mutex %s\n", syncMutexName);
+        errorDialog(appName, lastError);
+        return 0;
+    }
 
-    const HWND hwnd = [&]() {
+    const HWND hWnd = [&]() {
         WNDCLASSW wc = { 0 };
         wc.lpfnWndProc      = wndProc;
         wc.hInstance        = GetModuleHandle(0);
         wc.lpszClassName    = appName;
         RegisterClass(&wc);
-        return CreateWindowExW(0, wc.lpszClassName, appName, 0, 0, 0, 0, 0
-            , HWND_MESSAGE, 0, wc.hInstance, 0);
+        return CreateWindowExW(0, wc.lpszClassName, appName, 0, 0, 0, 0, 0, HWND_MESSAGE, 0, wc.hInstance, 0);
     }();
 
     const wchar_t* myDllName = L".\\" DLL_NAME;
@@ -172,12 +165,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         return 0;
     }
 
-    const NotifyIcon ni(hwnd, LoadIcon(0, IDI_APPLICATION), appName, WM_MY_TASKTRAY);
+    const NotifyIcon ni(hWnd, LoadIcon(0, IDI_APPLICATION), appName, WM_MY_TASKTRAY);
 
     SetProcessWorkingSetSize(GetCurrentProcess(), static_cast<SIZE_T>(-1), static_cast<SIZE_T>(-1));
 
     Mutex procMutex(syncMutexName);
-    if(!procMutex.good()) { return 0; }
+    if(!procMutex.good()) {
+        const DWORD lastError = GetLastError();
+        outputDebugString(L"Failed to create syncMutex %s\n", syncMutexName);
+        errorDialog(appName, lastError);
+        return 0;
+    }
 
     {   // Invoke 32-bit executable.
         wchar_t imageName[MAX_PATH] = { 0 };
@@ -186,9 +184,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
         STARTUPINFOW si = { .cb = sizeof(si) };
         PROCESS_INFORMATION pi = { 0 };
-        wchar_t cmd[1] = { 0 };
+        wchar_t* cmd = GetCommandLineW();
         if(! CreateProcessW(imageName, cmd, 0, 0, FALSE, 0, 0, 0, &si, &pi)) {
+            const DWORD lastError = GetLastError();
             outputDebugString(L"Failed to invoke %s\n", imageName);
+            errorDialog(appName, lastError);
             return 0;
         }
     }
@@ -205,7 +205,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 #else // defined(_WIN64)
 
 
-int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
+int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
     const HANDLE h = OpenMutex(SYNCHRONIZE, FALSE, syncMutexName);
     if(!h) {
         const DWORD lastError = GetLastError();

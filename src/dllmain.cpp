@@ -1,19 +1,14 @@
 ﻿#include "kbdacc.h"
 #pragma comment(lib, "winmm.lib")
 
-#if ! defined(_WINDLL)
-#  error This code must be compiled with 'Windows Dynamic Library (.dll)' mode.  Check your Visual Studio Project > Properties > General > Configuration Type.
-#endif
-
-
 struct KbdAccConfig {
-    int delay  = 200;   // delay time in milliseconds
-    int repeat = 10;    // repeat time in milliseconds
+    int delay  = 200;   // Repeat delay in milliseconds
+    int repeat = 10;    // Repeat rate in milliseconds
 };
 
 static int getEnvironmentVariableAsInt(const char* name, int defaultValue) {
     char buf[256] = { 0 };
-    const int len = (int) GetEnvironmentVariableA(name, buf, (DWORD) sizeof(buf));
+    const DWORD len = GetEnvironmentVariableA(name, buf, (DWORD) sizeof(buf));
     if(len == 0) {
         return defaultValue;
     }
@@ -99,7 +94,7 @@ struct Entry {
     }
 
 protected:
-    MSG         msg;
+    MSG         msg = { 0 };
     DWORD       threadId = 0;
     MMRESULT    uTimerId = TIMER_ID_UNUSED;
 
@@ -145,12 +140,8 @@ public:
         return nullptr;
     }
 
-    bool isValidIndex(int index) const {
-        return (index >= 0) && (index < static_cast<int>(entryArray.size()));
-    }
-
     Entry* getEntryByIndex(int index) {
-        if(!isValidIndex(index)) {
+        if((index < 0) || (index >= static_cast<int>(entryArray.size()))) {
             return nullptr;
         }
         return &entryArray[index];
@@ -295,7 +286,7 @@ protected:
 };
 
 
-BOOL WINAPI DllMain([[maybe_unused]] HINSTANCE hInstDll, DWORD fdwReason, LPVOID) {
+BOOL WINAPI DllMain(HINSTANCE hInstDll, DWORD fdwReason, LPVOID) {
     switch(fdwReason) {
     case DLL_PROCESS_ATTACH:
         KbdAcc::attach(hInstDll);
