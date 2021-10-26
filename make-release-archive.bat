@@ -12,7 +12,7 @@ copy ..\README.md .
 copy ..\LICENSE .
 copy ..\artifacts\Release\*.* .
 
-7z a ..\kbdacc_clone_%TAG%.zip *.*
+7z a ..\kbdacc_clone_%TAG%.zip *.* *
 
 popd
 rmdir /S /Q staging
