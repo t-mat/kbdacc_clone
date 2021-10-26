@@ -1,20 +1,20 @@
 # kbdacc_clone
 
-Clone of classic [Tetsuya Kamei](http://www.jsdlab.co.jp/~kamei/)'s `kbdacc` which accelerates key repeat time.
+Clone of classic [Tetsuya Kamei](http://www.jsdlab.co.jp/~kamei/)'s `kbdacc` which accelerates key repeat rate.
 
 
 ## Building
 
 Prerequisites
 
-- Windows 10 (x64)
+- Windows 10 (x64) [version 1809](https://en.wikipedia.org/wiki/Windows_10_version_1809) or greater.
 - Visual C++ 2019
-- `git`
 
 ```
 cd /d "%USERPROFILE%\Documents"
-git clone https://github.com/t-mat/kbdacc_clone.git
-cd kbdacc_clone
+curl -JLO https://github.com/t-mat/kbdacc_clone/archive/refs/heads/main.zip
+tar -xf kbdacc_clone-main.zip
+cd kbdacc_clone-main
 .\build.bat
 start "" ".\artifacts\Release\kbdacc.exe"
 ```
@@ -25,7 +25,7 @@ start "" ".\artifacts\Release\kbdacc.exe"
 - When it's running, you can see `kbdacc` icon in the system tray.
 - To quit the app, click the icon and select "Quit".
 
-There're two environment variables for configuration.  If you need to use it, set these environment variables before invoking `kbdacc.exe`.
+There're two environment variables for configuration.  To use them, set these environment variables before invoking `kbdacc.exe`.
 
-- `KBDACC_DELAY` : Delay time of first key down to key repeat in milliseconds.  Default value is `200`.
-- `KBDACC_REPEAT` : Key repeat time in milliseconds.  Default value is `10`.
+- `KBDACC_DELAY` : Repeat delay in milliseconds.  Default value is `200`.
+- `KBDACC_REPEAT` : Repeat rate in milliseconds.  Default value is `10`.
