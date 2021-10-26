@@ -1,5 +1,7 @@
 name: release
 
+on: push
+
 jobs:
   build:
     name: Build release
@@ -19,4 +21,3 @@ jobs:
             README.md
             LICENSE
             artifacts/Release/*
-
