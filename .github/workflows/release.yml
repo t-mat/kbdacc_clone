@@ -10,7 +10,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Build artifacts
+      - name: Build Artifacts
         run: cmd.exe /c '.\build.bat'
 
       - name: Archive Artifacts
