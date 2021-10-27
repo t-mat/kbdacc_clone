@@ -7,11 +7,6 @@
 #include <shellapi.h>
 #include <mmsystem.h>
 
-#include <stdlib.h>
-
-#include <functional>
-#include <array>
-
 #define APPNAME "kbdacc"
 
 #if defined(_WIN64)
@@ -34,7 +29,7 @@ inline void outputDebugString(const wchar_t* fmt, ...) {
     va_list args;
     va_start(args, fmt);
     wchar_t buf[1024];
-    vswprintf_s(buf, std::size(buf), fmt, args);
+    StringCchVPrintfW(buf, sizeof(buf)/sizeof(buf[0]), fmt, args);
     ::OutputDebugStringW(buf);
     va_end(args);
 }
@@ -42,7 +37,7 @@ inline void outputDebugString(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
     char buf[1024];
-    vsprintf_s(buf, std::size(buf), fmt, args);
+    StringCchVPrintfA(buf, sizeof(buf)/sizeof(buf[0]), fmt, args);
     OutputDebugStringA(buf);
     va_end(args);
 }
