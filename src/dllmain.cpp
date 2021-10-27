@@ -12,7 +12,18 @@ static int getEnvironmentVariableAsInt(const char* name, int defaultValue) {
     if(len == 0) {
         return defaultValue;
     }
-    return atoi(buf);
+    static const auto my_atoi = [](const char* p) -> int {
+        int x = 0;
+        for(;;) {
+            const int c = (*p++) - '0';
+            if(c < 0 || c >= 10) {
+                break;
+            }
+            x = (x * 10) + c;
+        }
+        return x;
+    };
+    return my_atoi(buf);
 }
 
 
@@ -129,7 +140,7 @@ public:
     Entry* setEntry(const MSG* pMsg, UINT wDelay, LPTIMECALLBACK lptc) {
         if(wDelay) {
             const CriticalSectionBlock csb(cs);
-            for(size_t i = 0; i < entryArray.size(); ++i) {
+            for(size_t i = 0; i < numEntryArray; ++i) {
                 Entry* p = &entryArray[i];
                 if(!p->isUsed()) {
                     p->set(pMsg, wDelay, wDelay, lptc, static_cast<DWORD>(i), TIME_ONESHOT);
@@ -141,14 +152,15 @@ public:
     }
 
     Entry* getEntryByIndex(int index) {
-        if((index < 0) || (index >= static_cast<int>(entryArray.size()))) {
+        if((index < 0) || (index >= numEntryArray)) {
             return nullptr;
         }
         return &entryArray[index];
     }
 
 protected:
-    std::array<Entry,32> entryArray;
+    static const int numEntryArray = 32;
+    Entry entryArray[numEntryArray];
     CriticalSection cs;
 };
 
