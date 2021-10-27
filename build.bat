@@ -39,13 +39,18 @@ rem
 rem https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
 rem
 
+if not exist "%~dp0artifacts\Release" (
+       mkdir "%~dp0artifacts\Release"
+)
+copy media\*.ico "%~dp0artifacts\Release\"
+
 cd vs2019\exe
 set "SlnFile=kbdacc.sln"
 
-echo msbuild "%SlnFile%" /nologo /v:quiet /m /p:Configuration=Release /p:Platform=x64 /t:Clean,Build || goto :ERROR
-     msbuild "%SlnFile%" /nologo /v:quiet /m /p:Configuration=Release /p:Platform=x64 /t:Clean,Build || goto :ERROR
-echo msbuild "%SlnFile%" /nologo /v:quiet /m /p:Configuration=Release /p:Platform=Win32 /t:Clean,Build || goto :ERROR
-     msbuild "%SlnFile%" /nologo /v:quiet /m /p:Configuration=Release /p:Platform=Win32 /t:Clean,Build || goto :ERROR
+echo msbuid "%SlnFile%" /p:Platform=x64
+msbuild "%SlnFile%" /nologo /v:quiet /m /p:Configuration=Release /p:Platform=x64 /t:Clean,Build || goto :ERROR
+echo msbuid "%SlnFile%" /p:Platform=Win32
+msbuild "%SlnFile%" /nologo /v:quiet /m /p:Configuration=Release /p:Platform=Win32 /t:Clean,Build || goto :ERROR
 
 echo.
 echo "%~dp0artifacts\Release" contains the following artifacts.
