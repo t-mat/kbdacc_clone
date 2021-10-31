@@ -38,8 +38,8 @@ static void errorDialog(const wchar_t* title, DWORD err, UINT style = MB_OK | MB
 #if defined(_WIN64)
 class Mutex {
 public:
-    Mutex(const wchar_t* mutexName) {
-        handle = CreateMutexW(0, FALSE, mutexName);
+    Mutex(const wchar_t* mutexName, BOOL bInitialOwner) {
+        handle = CreateMutexW(0, bInitialOwner, mutexName);
     }
 
     ~Mutex() {
@@ -95,7 +95,7 @@ static constexpr UINT WM_MY_TASKTRAY    = WM_USER + 1;
 
 
 static LRESULT wndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    static constexpr UINT CM_MY_EXIT        = 1;
+    static constexpr UINT CM_MY_EXIT = 1;
 
     switch(uMsg) {
     default:
@@ -137,7 +137,8 @@ static LRESULT wndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
 
 static void winMain64() {
-    Mutex mutex(globalMutexName);
+    // Global mutex for keeping single instance.
+    Mutex mutex(globalMutexName, FALSE);
     if(! mutex.good()) {
         const DWORD lastError = GetLastError();
         outputDebugString(L"Failed to create global mutex %s\n", globalMutexName);
@@ -171,7 +172,13 @@ static void winMain64() {
     }
     const NotifyIcon ni(hWnd, icon, appName, WM_MY_TASKTRAY);
 
-    Mutex procMutex(syncMutexName);
+    // Inter process mutex
+    //  32-bit version of kbdacc will be waiting for signal of this mutex.
+    //  Mutex object is signaled when it is not owned.  In other words, it
+    //  will be signaled when 64-bit version of kbdacc process is terminated,
+    //  32-bit kbdacc uses this property to wait the termination
+    //  of 64-bit app without polling.
+    Mutex procMutex(syncMutexName, TRUE);
     if(!procMutex.good()) {
         const DWORD lastError = GetLastError();
         outputDebugString(L"Failed to create syncMutex %s\n", syncMutexName);
