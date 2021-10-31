@@ -184,6 +184,7 @@ struct KbdAcc {
 
 protected:
     void init(HINSTANCE hInstDll) {
+        timeBeginPeriod(1);
         entryPool.init();
 
         cfg.delay  = getEnvironmentVariableAsInt("KBDACC_DELAY", 200);
@@ -205,7 +206,7 @@ protected:
 
         auto* s = &shared->getMessageLlHook;
         const LONG k = InterlockedDecrement(&s->globalCounter);
-        if(0 > k && s->hook) {
+        if(k < 0 && s->hook) {
             UnhookWindowsHookEx(s->hook);
             s->hook = nullptr;
         }
