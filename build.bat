@@ -34,23 +34,34 @@ echo call "%InstallDir%\VC\Auxiliary\Build\vcvars64.bat"
      call "%InstallDir%\VC\Auxiliary\Build\vcvars64.bat" || goto :ERROR
 
 rem
-rem Build each *.sln file by msbuild for x64 and Win32 with release configuration.
+rem Build *.sln file by msbuild
 rem
 rem https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
 rem
 
+
 if not exist "%~dp0artifacts\Release" (
        mkdir "%~dp0artifacts\Release"
 )
+if not exist "%~dp0artifacts\Debug" (
+       mkdir "%~dp0artifacts\Debug"
+)
 copy media\*.ico "%~dp0artifacts\Release\"
+copy media\*.ico "%~dp0artifacts\Debug\"
 
-cd vs2019\exe
+pushd vs2019\exe
 set "SlnFile=kbdacc.sln"
 
-echo msbuild "%SlnFile%" /p:Platform=x64
-     msbuild "%SlnFile%" /p:Platform=x64   /nologo /v:quiet /m /p:Configuration=Release /t:Clean,Build || goto :ERROR
-echo msbuild "%SlnFile%" /p:Platform=Win32
-     msbuild "%SlnFile%" /p:Platform=Win32 /nologo /v:quiet /m /p:Configuration=Release /t:Clean,Build || goto :ERROR
+echo msbuild "%SlnFile%" /p:Platform=x64   /p:Configuration=Release
+     msbuild "%SlnFile%" /p:Platform=x64   /p:Configuration=Release /nologo /v:quiet /m /t:Clean,Build || goto :ERROR
+echo msbuild "%SlnFile%" /p:Platform=Win32 /p:Configuration=Release
+     msbuild "%SlnFile%" /p:Platform=Win32 /p:Configuration=Release /nologo /v:quiet /m /t:Clean,Build || goto :ERROR
+echo msbuild "%SlnFile%" /p:Platform=x64   /p:Configuration=Debug
+     msbuild "%SlnFile%" /p:Platform=x64   /p:Configuration=Debug   /nologo /v:quiet /m /t:Clean,Build || goto :ERROR
+echo msbuild "%SlnFile%" /p:Platform=Win32 /p:Configuration=Debug
+     msbuild "%SlnFile%" /p:Platform=Win32 /p:Configuration=Debug   /nologo /v:quiet /m /t:Clean,Build || goto :ERROR
+
+popd
 
 echo.
 echo "%~dp0artifacts\Release" contains the following artifacts.
@@ -58,6 +69,14 @@ echo.
 echo dir /b "%~dp0artifacts\Release"
      dir /b "%~dp0artifacts\Release"
 echo.
+
+echo.
+echo "%~dp0artifacts\Debug" contains the following artifacts.
+echo.
+echo dir /b "%~dp0artifacts\Debug"
+     dir /b "%~dp0artifacts\Debug"
+echo.
+
 echo Build Status - SUCCEEDED
 set /a errorno=0
 goto :END
