@@ -47,10 +47,10 @@ copy media\*.ico "%~dp0artifacts\Release\"
 cd vs2019\exe
 set "SlnFile=kbdacc.sln"
 
-echo msbuid "%SlnFile%" /p:Platform=x64
-msbuild "%SlnFile%" /nologo /v:quiet /m /p:Configuration=Release /p:Platform=x64 /t:Clean,Build || goto :ERROR
-echo msbuid "%SlnFile%" /p:Platform=Win32
-msbuild "%SlnFile%" /nologo /v:quiet /m /p:Configuration=Release /p:Platform=Win32 /t:Clean,Build || goto :ERROR
+echo msbuild "%SlnFile%" /p:Platform=x64
+     msbuild "%SlnFile%" /p:Platform=x64   /nologo /v:quiet /m /p:Configuration=Release /t:Clean,Build || goto :ERROR
+echo msbuild "%SlnFile%" /p:Platform=Win32
+     msbuild "%SlnFile%" /p:Platform=Win32 /nologo /v:quiet /m /p:Configuration=Release /t:Clean,Build || goto :ERROR
 
 echo.
 echo "%~dp0artifacts\Release" contains the following artifacts.
