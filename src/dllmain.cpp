@@ -45,21 +45,48 @@ protected:
 };
 
 
-struct Shared {
-    struct GetMessageLlHook {
-        LONG    globalCounter;
-        HHOOK   hook;
-    } getMessageLlHook;
+struct SharedMemory {
+    void open(const wchar_t* name, size_t size) {
+        hMapFile = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, name);
+        outputDebugString(L"OpenFileMapping(%s) -> %p\n", name, hMapFile);
+        if(hMapFile) {
+            ptr = MapViewOfFile(hMapFile, FILE_MAP_ALL_ACCESS, 0, 0, size);
+            outputDebugString(L"OpenFileMapping(%s) -> %p, ptr=0x%p\n", name, hMapFile, ptr);
+        }
+    }
+
+    ~SharedMemory() {
+        if(good()) {
+            UnmapViewOfFile(ptr);
+            if(hMapFile) {
+                CloseHandle(hMapFile);
+            }
+        }
+    }
+
+    bool good() const {
+        return hMapFile != nullptr && ptr != nullptr;
+    }
+
+    template<class T>
+    T* get() const {
+        return (T*) ptr;
+    }
+
+    HANDLE hMapFile = nullptr;
+    void* ptr = nullptr;
 };
 
-#pragma data_seg(".shared") // FIXME
-volatile Shared shared_ = {
-    { -1, nullptr },
-};
-#pragma data_seg()
-#pragma comment(linker, "/SECTION:.shared,RWS")
-
-static volatile Shared* shared = &shared_;
+static volatile Shared* getShared() {
+    static SharedMemory sharedMemory;
+    if(! sharedMemory.good()) {
+        sharedMemory.open(SHARED_MEMORY_NAME, sizeof(Shared));
+    }
+    if(! sharedMemory.good()) {
+        return nullptr;
+    }
+    return sharedMemory.get<Shared>();
+}
 
 
 struct Entry {
@@ -190,10 +217,12 @@ protected:
         cfg.delay  = getEnvironmentVariableAsInt("KBDACC_DELAY", 200);
         cfg.repeat = getEnvironmentVariableAsInt("KBDACC_REPEAT", 10);
 
-        auto* s = &shared->getMessageLlHook;
+        auto* s = &(getShared()->getMessageHook);
         const LONG k = InterlockedIncrement(&s->globalCounter);
-        if(0 == k && nullptr == s->hook) {
+        outputDebugString(L"" DLL_NAME L": s=%p, k=%d, s->hook=%p\n", s, k, s->hook);
+        if(k == 1 && s->hook == nullptr) {
             s->hook = SetWindowsHookEx(WH_GETMESSAGE, static_GetMsgProc, hInstDll, 0);
+            outputDebugString(L"" DLL_NAME L": SetWindowsHookEx() s->hook = %p\n", s->hook);
             if(! s->hook) {
                 const DWORD lastError = GetLastError();
                 outputDebugString(L"" DLL_NAME L": SetWindowsHookEx() Install Error (lastError=0x%08x)", lastError);
@@ -204,9 +233,9 @@ protected:
     void cleanup() {
         entryPool.cleanup();
 
-        auto* s = &shared->getMessageLlHook;
+        auto* s = &(getShared()->getMessageHook);
         const LONG k = InterlockedDecrement(&s->globalCounter);
-        if(k < 0 && s->hook) {
+        if(k == 0 && s->hook) {
             UnhookWindowsHookEx(s->hook);
             s->hook = nullptr;
         }

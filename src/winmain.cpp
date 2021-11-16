@@ -25,6 +25,29 @@ protected:
 };
 
 
+struct FileMapping {
+    FileMapping(const wchar_t* name, uint64_t size) {
+        const HANDLE h = INVALID_HANDLE_VALUE;
+        const DWORD hi = (DWORD) (size >> 32);
+        const DWORD lo = (DWORD) (size);
+        hMapFile = CreateFileMappingW(h, nullptr, PAGE_READWRITE, hi, lo, name);
+        outputDebugString(L"CreateFileMappingW(%s, %lld) -> %p\n", name, size, hMapFile);
+   }
+
+    ~FileMapping() {
+        if(good()) {
+            CloseHandle(hMapFile);
+        }
+    }
+
+    bool good() const {
+        return hMapFile != nullptr;
+    }
+
+    HANDLE hMapFile = nullptr;
+};
+
+
 static void errorDialog(const wchar_t* title, DWORD err, UINT style = MB_OK | MB_ICONINFORMATION) {
     wchar_t* buf = nullptr;
     const DWORD flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
@@ -39,7 +62,12 @@ static void errorDialog(const wchar_t* title, DWORD err, UINT style = MB_OK | MB
 class Mutex {
 public:
     Mutex(const wchar_t* mutexName, BOOL bInitialOwner) {
-        handle = CreateMutexW(0, bInitialOwner, mutexName);
+        // note : If mutexName already exists, CreateMutexW() returns
+        //        non-nullptr value.  We must retrieve GetLastError() and
+        //        check it's ERROR_ALREADY_EXISTS or not.
+        // see https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-createmutexa#return-value
+        handle = CreateMutexW(nullptr, bInitialOwner, mutexName);
+        lastError = GetLastError();
     }
 
     ~Mutex() {
@@ -48,12 +76,18 @@ public:
         }
     }
 
+    // Returns true if this instance created the mutex.
+    bool created() const {
+        return good() && (lastError != ERROR_ALREADY_EXISTS);
+    }
+
     bool good() const {
         return nullptr != handle;
     }
 
 protected:
     HANDLE handle = nullptr;
+    DWORD lastError = 0;
 };
 
 
@@ -137,14 +171,17 @@ static LRESULT wndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
 
 static void winMain64() {
+    outputDebugString(L"winMain64 - start\n");
     // Global mutex for keeping single instance.
     Mutex mutex(globalMutexName, FALSE);
-    if(! mutex.good()) {
+    if(! mutex.created()) {
         const DWORD lastError = GetLastError();
         outputDebugString(L"Failed to create global mutex %s\n", globalMutexName);
         errorDialog(appName, lastError);
         return;
     }
+
+    FileMapping fileMapping(SHARED_MEMORY_NAME, sizeof(Shared));
 
     HWND hWnd;
     {
@@ -207,6 +244,7 @@ static void winMain64() {
     while(GetMessage(&msg, 0, 0, 0)) {
         DispatchMessage(&msg);
     }
+    outputDebugString(L"winMain64 - exit\n");
 }
 
 
@@ -214,6 +252,7 @@ static void winMain64() {
 
 
 static void winMain32() {
+    outputDebugString(L"winMain32 - start\n");
     const HANDLE h = OpenMutex(SYNCHRONIZE, FALSE, syncMutexName);
     if(!h) {
         const DWORD lastError = GetLastError();
@@ -221,6 +260,8 @@ static void winMain32() {
         errorDialog(appName, lastError);
         return;
     }
+
+    FileMapping fileMapping(SHARED_MEMORY_NAME, sizeof(Shared));
 
     const wchar_t* myDllName = L".\\" DLL_NAME;
     const DllLoader myDll(myDllName);
@@ -234,6 +275,7 @@ static void winMain32() {
     SetProcessWorkingSetSize(GetCurrentProcess(), (SIZE_T)-1, (SIZE_T)-1);
     WaitForSingleObject(h, INFINITE);
     ReleaseMutex(h);
+    outputDebugString(L"winMain32 - exit\n");
 }
 
 

@@ -6,16 +6,19 @@
 #include <strsafe.h>
 #include <shellapi.h>
 #include <mmsystem.h>
+#include <stdint.h>
 
 #define APPNAME "kbdacc"
 
 #if defined(_WIN64)
+#  define SHARED_MEMORY_NAME L"" APPNAME "_SHARED_MEMORY_WIN64"
 #  if !defined(_DEBUG)
 #    define DLL_NAME    "kbdacc_dll.dll"    // x64, release
 #  else
 #    define DLL_NAME    "kbdacc_dllD.dll"   // x64, debug
 #  endif
 #else
+#  define SHARED_MEMORY_NAME L"" APPNAME "_SHARED_MEMORY_WIN32"
 #  if !defined(_DEBUG)
 #    define DLL_NAME    "kbdacc_dll.dll32"  // x86, release
 #  else
@@ -44,3 +47,11 @@ inline void outputDebugString(const char* fmt, ...) {
 #else
 #define outputDebugString(...)
 #endif
+
+
+struct Shared {
+    struct GetMessageHook {
+        LONG    globalCounter;
+        HHOOK   hook;
+    } getMessageHook;
+};
