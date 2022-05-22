@@ -224,8 +224,7 @@ protected:
             s->hook = SetWindowsHookEx(WH_GETMESSAGE, static_GetMsgProc, hInstDll, 0);
             outputDebugString(L"" DLL_NAME L": SetWindowsHookEx() s->hook = %p\n", s->hook);
             if(! s->hook) {
-                const DWORD lastError = GetLastError();
-                outputDebugString(L"" DLL_NAME L": SetWindowsHookEx() Install Error (lastError=0x%08x)", lastError);
+                outputDebugString(L"" DLL_NAME L": SetWindowsHookEx() Install Error (lastError=0x%08x)", GetLastError());
             }
         }
     }
