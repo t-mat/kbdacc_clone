@@ -49,7 +49,7 @@ if not exist "%~dp0artifacts\Debug" (
 copy media\*.ico "%~dp0artifacts\Release\"
 copy media\*.ico "%~dp0artifacts\Debug\"
 
-pushd vs2019\exe
+pushd vs2022\exe
 set "SlnFile=kbdacc.sln"
 
 echo msbuild "%SlnFile%" /p:Platform=x64   /p:Configuration=Release
