@@ -113,6 +113,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalOptions>/emittoolversioninfo:no %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>if not exist "$(SolutionDir)..\..\artifacts\$(Configuration)\" mkdir "$(SolutionDir)..\..\artifacts\$(Configuration)\"
@@ -133,6 +134,7 @@ copy "$(TargetPath)" "$(SolutionDir)x64\$(Configuration)\"
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -140,6 +142,7 @@ copy "$(TargetPath)" "$(SolutionDir)x64\$(Configuration)\"
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalOptions>/emittoolversioninfo:no %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>if not exist "$(SolutionDir)..\..\artifacts\$(Configuration)\" mkdir "$(SolutionDir)..\..\artifacts\$(Configuration)\"
@@ -163,6 +166,7 @@ copy "$(TargetPath)" "$(SolutionDir)x64\$(Configuration)\"
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalOptions>/emittoolversioninfo:no %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>if not exist "$(SolutionDir)..\..\artifacts\$(Configuration)\" mkdir "$(SolutionDir)..\..\artifacts\$(Configuration)\"
@@ -191,6 +195,7 @@ copy "$(TargetPath)" "$(SolutionDir)x64\$(Configuration)\"
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalOptions>/emittoolversioninfo:no %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>if not exist "$(SolutionDir)..\..\artifacts\$(Configuration)\" mkdir "$(SolutionDir)..\..\artifacts\$(Configuration)\"
