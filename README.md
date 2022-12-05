@@ -8,7 +8,7 @@ Clone of classic [Tetsuya Kamei](http://www.jsdlab.co.jp/~kamei/)'s `kbdacc` whi
 Prerequisites
 
 - Windows 10 (x64) [version 1809](https://en.wikipedia.org/wiki/Windows_10_version_1809) or greater.
-- Visual C++ 2019
+- Visual C++ 2022
 
 
 ### Command Prompt
@@ -30,7 +30,7 @@ cd /d "%USERPROFILE%\Documents"
 curl -JLO https://github.com/t-mat/kbdacc_clone/archive/refs/heads/main.zip
 tar -xf kbdacc_clone-main.zip
 cd kbdacc_clone-main
-start "" ".\vs2019\exe\kbdacc.sln"
+start "" ".\vs2022\exe\kbdacc.sln"
 ```
 
 - From main menu, select "Build > Batch Build".
